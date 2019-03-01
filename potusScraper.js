@@ -1,15 +1,19 @@
 const rp = require('request-promise');
 const $ = require('cheerio');
-const url = 'https://en.wikipedia.org/wiki/List_of_Presidents_of_the_United_States';
+const potusParse = require('./potusParse');
 
-rp(url)
+const rootWikiUrl = 'https://en.wikipedia.org/';
+const presidentsUrl = rootWikiUrl + 'wiki/List_of_Presidents_of_the_United_States';
+
+rp(presidentsUrl)
     .then(function(html) {
         const wikiUrls = [];
         for (let i = 0; i < 45; i++) {
             wikiUrls.push($('big > a', html)[i].attribs.href);
         }
-        console.log(wikiUrls);
+        return Promise.all(
+            wikiUrls.map( (url) => potusParse(rootWikiUrl + url) )
+        );        
     })
-    .catch(function(err) {
-        console.error(err);
-    })
+    .then( (presidents) => console.log(presidents) )
+    .catch( (err) => console.error(err) );
